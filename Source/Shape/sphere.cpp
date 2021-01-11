@@ -1,10 +1,10 @@
 #include "Shape/sphere.hpp"
 
 Sphere::Sphere() {}
-Sphere::Sphere(Point3 center, double r) : 
-	center(center), radius(r) {}
+Sphere::Sphere(Point3 center, double r, Color color) : 
+	center(center), radius(r), color(color) {}
 
-bool Sphere::hit(const Ray& r, double tMin, double tMax, hitRecord& rec) const {
+bool Sphere::hit(const Ray& r, double tMin, double tMax, HitRecord& rec) const {
 	Vec3 OC = r.origin() - center;
 	double k1 = r.direction().lengthSquared();
 	double halfK2 = dot(OC, r.direction());
@@ -26,7 +26,8 @@ bool Sphere::hit(const Ray& r, double tMin, double tMax, hitRecord& rec) const {
 	/* Record if the ray hits and where */
 	rec.t = root;
 	rec.p = r.at(rec.t);
-	rec.normal = (rec.p - center) / radius;
+	Vec3 outwardNormal = (rec.p - center) / radius;
+	rec.setFaceNormal(r, outwardNormal);
 
 	return true;
 }

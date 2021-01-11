@@ -4,7 +4,7 @@
 #include "ray.hpp"
 #include "vec3.hpp"
 
-struct hitRecord {
+struct HitRecord {
 	Point3 p;
 	Vec3 normal;
 	double t;
@@ -20,7 +20,7 @@ struct hitRecord {
 
 class Hittable {
 	public:
-		virtual bool hit(const Ray& r, double tMin, double tMax, hitRecord& rec) const = 0;
+		virtual bool hit(const Ray& r, double tMin, double tMax, HitRecord& rec) const = 0;
 };
 
 #endif

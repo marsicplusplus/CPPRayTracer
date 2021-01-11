@@ -7,13 +7,14 @@
 class Sphere : public Hittable {
 	public:
 		Sphere();
-		Sphere(Point3 center, double r);
+		Sphere(Point3 center, double r, Color color);
 
-		virtual bool hit(const Ray& r, double tMin, double tMax, hitRecord& rec) const override;
+		virtual bool hit(const Ray& r, double tMin, double tMax, HitRecord& rec) const override;
 
 	public:
 		Point3 center;
 		double radius;
+		Color color;
 };
 
 #endif
