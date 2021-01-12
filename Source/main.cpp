@@ -1,4 +1,5 @@
 #include <iostream>
+#include "camera.hpp"
 #include "color.hpp"
 #include "defs.hpp"
 #include "hittable_list.hpp"
@@ -22,27 +23,21 @@ Color rayColor(const Ray &ray, const Hittable &world) {
 	if(world.hit(ray, 0, inf, rec)) {
 		return 0.5 * (rec.normal + Color(1, 1, 1));
 	}
-	return BG_COLOR;
+	return Color(0.5, 0.1, 0.5);
 }
 
 int main(){
 	const auto imgRatio = 16.0 / 9.0;
 	const int imgW = 400;
 	const int imgH = static_cast<int>(imgW / imgRatio);
+	const int samples = 1000;
 
-	// Camera
-	double viewportH = 2.0;
-	double viewportW = imgRatio * viewportH;
-	double focalLength = 1.0;
-
-	Point3 origin(0, 0, 0);
-	Vec3 horizontal(viewportW, 0, 0);
-	Vec3 vertical(0, viewportH, 0);
-	auto lowerLeft = origin - horizontal / 2 - vertical / 2 - Vec3(0, 0, focalLength);
+	Camera cam;
 
 	HittableList world;
 	world.add(std::make_shared<Sphere>(Point3(0, 0, -1), 0.5, Color(1, 0, 0)));
-	world.add(std::make_shared<Sphere>(Point3(2, 0, -1), 0.8, Color(1, 0, 0)));
+	world.add(std::make_shared<Sphere>(Point3(0.6, 0.6, -2), 0.5, Color(1, 0, 0)));
+	world.add(std::make_shared<Sphere>(Point3(-0.6, 0.6, -2), 0.6, Color(1, 0, 0)));
 	world.add(std::make_shared<Sphere>(Point3(0, -100.5, -1), 100, Color(0, 0.5, 0.6)));
 
 	std::cout << "P3\n" << imgW << ' ' << imgH << "\n255\n";
@@ -50,11 +45,14 @@ int main(){
 	for(int j = imgH - 1; j >= 0; --j){
 		std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
 		for(int i = 0; i < imgW; ++i){
-			auto u = double(i) / (imgW - 1);
-			auto v = double(j) / (imgH - 1);
-
-			Ray ray(origin, lowerLeft + u * horizontal + v * vertical - origin);
-			writeColor(std::cout, rayColor(ray, world));
+			Color color(0,0,0);
+			for(int s = 0; s < samples; s++){
+				auto u = double(i) / (imgW - 1);
+				auto v = double(j) / (imgH - 1);
+				Ray r = cam.getRay(u, v);
+				color += rayColor(r, world);
+			}
+			writeColor(std::cout, color, samples);
 		}
 	}
 	std::cerr << "\nDone.\n";
