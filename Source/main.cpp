@@ -18,19 +18,28 @@
  * (-h +- sqrt(h^2 - ac))/a
  */
 
-Color rayColor(const Ray &ray, const Hittable &world) {
+Color rayColor(const Ray &ray, const Hittable &world, int depth) {
 	HitRecord rec;
-	if(world.hit(ray, 0, inf, rec)) {
-		return 0.5 * (rec.normal + Color(1, 1, 1));
+	if(depth <= 0)
+		return Color(0.0, 0.0, 0.0);
+
+	if(world.hit(ray, 0.001, inf, rec)) {
+		Point3 target = rec.p + rec.normal + randomUnitVector();
+		return 0.5 * rayColor(Ray(rec.p, target - rec.p), world, depth - 1);
+		//return 0.5 * (rec.normal + Color(1, 1, 1));
 	}
-	return Color(0.5, 0.1, 0.5);
+	//Vec3 unit_direction = unitVector(ray.direction());
+	//auto t = 0.5*(unit_direction.y() + 1.0);
+	//return (1.0-t)*Color(1.0, 1.0, 1.0) + t*Color(0.5, 0.7, 1.0);
+	return Color(1.0, 1.0, 1.0);
 }
 
 int main(){
 	const auto imgRatio = 16.0 / 9.0;
 	const int imgW = 400;
 	const int imgH = static_cast<int>(imgW / imgRatio);
-	const int samples = 1000;
+	const int samples = 100;
+	const int maxDepth = 50;
 
 	Camera cam;
 
@@ -47,10 +56,10 @@ int main(){
 		for(int i = 0; i < imgW; ++i){
 			Color color(0,0,0);
 			for(int s = 0; s < samples; s++){
-				auto u = double(i) / (imgW - 1);
-				auto v = double(j) / (imgH - 1);
+				auto u = double(i + randomDouble()) / (imgW - 1);
+				auto v = double(j + randomDouble()) / (imgH - 1);
 				Ray r = cam.getRay(u, v);
-				color += rayColor(r, world);
+				color += rayColor(r, world, maxDepth);
 			}
 			writeColor(std::cout, color, samples);
 		}

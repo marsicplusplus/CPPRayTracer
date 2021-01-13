@@ -1,8 +1,8 @@
 #include "Shape/sphere.hpp"
 
 Sphere::Sphere() {}
-Sphere::Sphere(Point3 center, double r, Color color) : 
-	center(center), radius(r), color(color) {}
+Sphere::Sphere(Point3 center, double r, std::shared_ptr<Material> m) : 
+	center(center), radius(r), matPtr(m) {}
 
 bool Sphere::hit(const Ray& r, double tMin, double tMax, HitRecord& rec) const {
 	Vec3 OC = r.origin() - center;
@@ -28,6 +28,7 @@ bool Sphere::hit(const Ray& r, double tMin, double tMax, HitRecord& rec) const {
 	rec.p = r.at(rec.t);
 	Vec3 outwardNormal = (rec.p - center) / radius;
 	rec.setFaceNormal(r, outwardNormal);
+	rec.matPtr = matPtr;
 
 	return true;
 }

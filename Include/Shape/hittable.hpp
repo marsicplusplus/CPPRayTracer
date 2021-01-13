@@ -2,11 +2,14 @@
 #define __HITTABLE_HPP__
 
 #include "ray.hpp"
+#include "material.hpp"
+#include <memory>
 #include "vec3.hpp"
 
 struct HitRecord {
 	Point3 p;
 	Vec3 normal;
+	std::shared_ptr<Material> matPtr;
 	double t;
 	bool frontFace;
 
