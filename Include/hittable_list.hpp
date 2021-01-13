@@ -2,7 +2,7 @@
 #define __HITTABLE_LIST_HPP__
 
 #include <memory>
-#include "Shape/hittable.hpp"
+#include "Shapes/hittable.hpp"
 #include <vector>
 
 class HittableList : public Hittable {

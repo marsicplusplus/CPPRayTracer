@@ -3,10 +3,12 @@
 #include "color.hpp"
 #include "defs.hpp"
 #include "hittable_list.hpp"
-#include "Shape/hittable.hpp"
-#include "Shape/sphere.hpp"
+#include "Shapes/hittable.hpp"
+#include "Shapes/sphere.hpp"
 #include "ray.hpp"
 #include "vec3.hpp"
+
+#include "Materials/lambertian_material.hpp"
 
 
 /*
@@ -44,10 +46,10 @@ int main(){
 	Camera cam;
 
 	HittableList world;
-	world.add(std::make_shared<Sphere>(Point3(0, 0, -1), 0.5, Color(1, 0, 0)));
-	world.add(std::make_shared<Sphere>(Point3(0.6, 0.6, -2), 0.5, Color(1, 0, 0)));
-	world.add(std::make_shared<Sphere>(Point3(-0.6, 0.6, -2), 0.6, Color(1, 0, 0)));
-	world.add(std::make_shared<Sphere>(Point3(0, -100.5, -1), 100, Color(0, 0.5, 0.6)));
+	world.add(std::make_shared<Sphere>(Point3(0, 0, -1), 0.5, std::make_shared<LambertianMaterial>(Color(1,0,0))));
+	world.add(std::make_shared<Sphere>(Point3(0.6, 0.6, -2), 0.5, std::make_shared<LambertianMaterial>(Color(1, 0, 0))));
+	world.add(std::make_shared<Sphere>(Point3(-0.6, 0.6, -2), 0.6, std::make_shared<LambertianMaterial>(Color(1, 0, 0))));
+	world.add(std::make_shared<Sphere>(Point3(0, -100.5, -1), 100, std::make_shared<LambertianMaterial>(Color(0, 0.5, 0.6))));
 
 	std::cout << "P3\n" << imgW << ' ' << imgH << "\n255\n";
 	

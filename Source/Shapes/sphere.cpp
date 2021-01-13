@@ -1,4 +1,4 @@
-#include "Shape/sphere.hpp"
+#include "Shapes/sphere.hpp"
 
 Sphere::Sphere() {}
 Sphere::Sphere(Point3 center, double r, std::shared_ptr<Material> m) : 

@@ -1,8 +1,8 @@
 #ifndef __SPHERE_HPP__
 #define __SPHERE_HPP__
 
-#include "Shape/hittable.hpp"
-#include "material.hpp"
+#include "Shapes/hittable.hpp"
+#include "Materials/material.hpp"
 #include <memory>
 #include "vec3.hpp"
 

@@ -2,7 +2,7 @@
 #define __HITTABLE_HPP__
 
 #include "ray.hpp"
-#include "material.hpp"
+#include "Materials/material.hpp"
 #include <memory>
 #include "vec3.hpp"
 
