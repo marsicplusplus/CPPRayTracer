@@ -2,6 +2,7 @@
 #include "camera.hpp"
 #include "color.hpp"
 #include "defs.hpp"
+#include <future>
 #include "hittable_list.hpp"
 #include "Shape/hittable.hpp"
 #include "Shape/sphere.hpp"
@@ -16,7 +17,11 @@
  * Using half discriminant (b=2h);
  * (-2h +- sqrt(2h^2 - 4ac))/2a;
  * (-h +- sqrt(h^2 - ac))/a
- */
+ */ 
+typedef struct {
+	int index;
+	Vec3 color;
+} RayResult;
 
 Color rayColor(const Ray &ray, const Hittable &world) {
 	HitRecord rec;
@@ -47,8 +52,8 @@ int main(){
 		for(int i = 0; i < imgW; ++i){
 			Color color(0,0,0);
 			for(int s = 0; s < samples; s++){
-				auto u = double(i) / (imgW - 1);
-				auto v = double(j) / (imgH - 1);
+				auto u = double(i + randomDouble()) / (imgW - 1);
+				auto v = double(j + randomDouble()) / (imgH - 1);
 				Ray r = cam.getRay(u, v);
 				color += rayColor(r, world);
 			}
