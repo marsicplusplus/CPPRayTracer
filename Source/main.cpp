@@ -8,20 +8,12 @@
 #include "Shapes/sphere.hpp"
 #include "ray.hpp"
 #include "vec3.hpp"
+#include <vector>
 
 #include "Materials/lambertian_material.hpp"
 #include "Materials/metal_material.hpp"
 #include "Materials/dieletric_material.hpp"
 
-
-/*
- * Hit the sphere if dot((P(t) - C), (P(t) - C) = r^2;
- * ((O + t*D - C), (O + t*D - C)) - r^2 = 0;
- * t^2 dot(D, D) + dot(2tD, (A-C)) + dot(A-C, A-C) - r^2 = 0;
- * Using half discriminant (b=2h);
- * (-2h +- sqrt(2h^2 - 4ac))/2a;
- * (-h +- sqrt(h^2 - ac))/a
- */ 
 typedef struct {
 	int index;
 	Vec3 color;
@@ -90,6 +82,8 @@ int main(){
 	const int imgH = static_cast<int>(imgW / imgRatio);
 	const int samples = 100;
 	const int maxDepth = 50;
+	
+	Color *buffer = new Color[imgW * imgH];
 
 	HittableList world = randomScene();
 
@@ -97,17 +91,52 @@ int main(){
 
 	std::cout << "P3\n" << imgW << ' ' << imgH << "\n255\n";
 	
-	for(int j = imgH - 1; j >= 0; --j){
-		std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
+	std::mutex mutex;
+	std::condition_variable cond;
+	std::vector<std::future<RayResult>> futures;
+	for(int j = 0; j < imgH; ++j){
+		std::cerr << "\rScanlines remaining: " << imgH - j << ' ' << std::flush;
 		for(int i = 0; i < imgW; ++i){
-			Color color(0,0,0);
-			for(int s = 0; s < samples; s++){
-				auto u = double(i + randomDouble()) / (imgW - 1);
-				auto v = double(j + randomDouble()) / (imgH - 1);
-				Ray r = cam.getRay(u, v);
-				color += rayColor(r, world, maxDepth);
+			std::future<RayResult> fut = std::async(std::launch::async | std::launch::deferred, 
+					[&cam, &world, imgW, imgH, &samples, i, j, &cond]() -> RayResult {
+					const int index = j * imgW + i;
+					Color color(0,0,0);
+					for(int s = 0; s < samples; ++s){
+						auto u = double(i + randomDouble()) / (imgW - 1);
+						auto v = double(j + randomDouble()) / (imgH - 1);
+						Ray r = cam.getRay(u, v);
+						color += rayColor(r, world, maxDepth);
+					}
+					RayResult res;
+					res.index = index;
+					res.color = color;
+					return res;
+			});
+			{
+				std::lock_guard<std::mutex> lock(mutex);
+				futures.push_back(std::move(fut));
 			}
-			writeColor(std::cout, color, samples);
+		}
+	}
+
+	{
+		std::unique_lock<std::mutex> lock(mutex);
+		cond.wait(lock, [&futures, imgH, imgW] {
+				std::cerr << "\rWaiting for: " << (imgH * imgW) - futures.size() << " jobs out of " << imgW*imgH << " to finish." << std::flush;
+				return futures.size() == (imgH * imgW);
+			});
+	}
+
+	for(auto& rr : futures){
+		RayResult res = rr.get();
+		buffer[res.index] = res.color;
+		std::cerr << "\rRebuilding the image at index: " << res.index << std::flush;
+	}
+
+
+	for(int j = 0; j < imgH; ++j){
+		for(int i = 0; i < imgW; ++i){
+			writeColor(std::cout, buffer[j * imgW + i], samples);
 		}
 	}
 	std::cerr << "\nDone.\n";
