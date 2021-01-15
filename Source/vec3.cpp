@@ -41,3 +41,8 @@ double Vec3::length() const{
 double Vec3::lengthSquared() const{
 	return e[0] * e[0] + e[1] * e[1] + e[2] * e[2];
 }
+
+bool Vec3::nearZero() const {
+	const double s = 1e-8;
+	return (fabs(e[0]) < s) && (fabs(e[1]) < s) && (fabs(e[2]) < s);
+}

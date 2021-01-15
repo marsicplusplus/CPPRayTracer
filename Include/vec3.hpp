@@ -2,6 +2,7 @@
 #define __VEC3_HPP__
 
 #include <cmath>
+#include "defs.hpp"
 #include <iostream>
 
 class Vec3 {
@@ -27,7 +28,14 @@ class Vec3 {
 
 		double length() const;
 		double lengthSquared() const;
+		bool nearZero() const;
 
+		inline static Vec3 random() {
+			return Vec3(randomDouble(), randomDouble(), randomDouble());
+		}
+		inline static Vec3 random(double rMin, double rMax) {
+			return Vec3(randomDouble(rMin, rMax), randomDouble(rMin, rMax), randomDouble(rMin, rMax));
+		}
 	private:
 		double e[3];
 
@@ -78,6 +86,37 @@ inline Vec3 cross(const Vec3 &u, const Vec3 &v){
 
 inline Vec3 unitVector(Vec3 v) {
 	return v / v.length();
+}
+
+inline Vec3 randomInUnitSphere() {
+	for(;;){
+		Vec3 p = Vec3::random(-1, 1);
+		if(p.lengthSquared() >= 1) continue;
+		return p;
+	}
+}
+
+inline Vec3 randomUnitVector(){
+	return unitVector(randomInUnitSphere());
+}
+
+inline Vec3 randomInHemisphere(const Vec3& normal){
+	Vec3 inUnitSphere = randomInUnitSphere();
+	if(dot(inUnitSphere, normal) > 0.0) // same hemisphere as the normal
+		return inUnitSphere;
+	else
+		return -inUnitSphere;
+}
+
+inline Vec3 reflect(const Vec3& v, const Vec3& n){
+	return v - 2 * dot(v, n) * n;
+}
+
+inline Vec3 refract(const Vec3& uv, const Vec3& n, double idxRatio){
+	double cosTheta = fmin(dot(-uv, n), 1.0);
+	Vec3 rPerp = idxRatio * (uv + cosTheta*n);
+	Vec3 rParal = -sqrt(fabs(1.0 - rPerp.lengthSquared())) * n;
+	return rPerp + rParal;
 }
 
 #endif
