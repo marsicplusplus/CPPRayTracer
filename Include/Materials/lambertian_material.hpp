@@ -9,6 +9,7 @@ class LambertianMaterial : public Material {
 
 		virtual bool scatter(const Ray& rIn, const HitRecord& rec, Color& attenuation, Ray &scattered) const override {
 			Vec3 scatterDir = rec.normal + randomUnitVector();
+			if(scatterDir.nearZero()) scatterDir = rec.normal;
 			scattered = Ray(rec.p, scatterDir);
 			attenuation = albedo;
 			return true;

@@ -9,6 +9,8 @@
 #include "vec3.hpp"
 
 #include "Materials/lambertian_material.hpp"
+#include "Materials/metal_material.hpp"
+#include "Materials/dieletric_material.hpp"
 
 
 /*
@@ -26,30 +28,67 @@ Color rayColor(const Ray &ray, const Hittable &world, int depth) {
 		return Color(0.0, 0.0, 0.0);
 
 	if(world.hit(ray, 0.001, inf, rec)) {
-		Point3 target = rec.p + rec.normal + randomUnitVector();
-		return 0.5 * rayColor(Ray(rec.p, target - rec.p), world, depth - 1);
-		//return 0.5 * (rec.normal + Color(1, 1, 1));
+		Ray scattered;
+		Color attenuation;
+		if(rec.matPtr->scatter(ray, rec, attenuation, scattered))
+			return attenuation * rayColor(scattered, world, depth - 1);
+		else
+			return Color(0.0, 0.0, 0.0);
 	}
-	//Vec3 unit_direction = unitVector(ray.direction());
-	//auto t = 0.5*(unit_direction.y() + 1.0);
-	//return (1.0-t)*Color(1.0, 1.0, 1.0) + t*Color(0.5, 0.7, 1.0);
 	return Color(1.0, 1.0, 1.0);
 }
 
+HittableList randomScene() {
+	HittableList world;
+
+	auto ground = std::make_shared<LambertianMaterial>(Color(0.5, 0.5, 0.5));
+	world.add(std::make_shared<Sphere>(Point3(0, -1000, 0), 1000, ground));
+
+	for(int a = -11; a < 11; a++){
+		for(int b = -11; b < 11; b++){
+			auto chooseMat = randomDouble();
+			Point3 center(a+0.9*randomDouble(), 0.2, b+0.9*randomDouble());
+			if((center-Point3(4, 0.2, 0)).length() > 0.9){
+				std::shared_ptr<Material> sphereMat;
+				if(chooseMat < 0.8){
+					Color albedo = Color::random() * Color::random();
+					sphereMat = std::make_shared<LambertianMaterial>(albedo);
+					world.add(std::make_shared<Sphere>(center, 0.2, sphereMat));
+				} else if(chooseMat < 0.95){
+					Color albedo = Color::random() * Color::random();
+					double fuzz = randomDouble(0, 0.5);
+					sphereMat = std::make_shared<MetalMaterial>(albedo, fuzz);
+					world.add(std::make_shared<Sphere>(center, 0.2, sphereMat));
+				} else {
+					sphereMat = std::make_shared<DieletricMaterial>(1.5);
+					world.add(std::make_shared<Sphere>(center, 0.2, sphereMat));
+				}
+			}
+		}
+	}
+
+	auto material1 = std::make_shared<DieletricMaterial>(1.5);
+	world.add(std::make_shared<Sphere>(Point3(0, 1, 0), 0.1, material1));
+
+	auto material2 = std::make_shared<LambertianMaterial>(Color(0.4, 0.2, 0.1));
+	world.add(std::make_shared<Sphere>(Point3(-4, 1, 0), 1.0, material2));
+
+	auto material3 = std::make_shared<MetalMaterial>(Color(0.7, 0.6, 0.5), 0.0);
+	world.add(std::make_shared<Sphere>(Point3(4, 1, 0), 0.1, material1));
+
+	return world;
+}
+
 int main(){
-	const auto imgRatio = 16.0 / 9.0;
-	const int imgW = 400;
+	const auto imgRatio = 3.0 / 2.0;
+	const int imgW = 1200;
 	const int imgH = static_cast<int>(imgW / imgRatio);
 	const int samples = 100;
 	const int maxDepth = 50;
 
-	Camera cam;
+	HittableList world = randomScene();
 
-	HittableList world;
-	world.add(std::make_shared<Sphere>(Point3(0, 0, -1), 0.5, std::make_shared<LambertianMaterial>(Color(1,0,0))));
-	world.add(std::make_shared<Sphere>(Point3(0.6, 0.6, -2), 0.5, std::make_shared<LambertianMaterial>(Color(1, 0, 0))));
-	world.add(std::make_shared<Sphere>(Point3(-0.6, 0.6, -2), 0.6, std::make_shared<LambertianMaterial>(Color(1, 0, 0))));
-	world.add(std::make_shared<Sphere>(Point3(0, -100.5, -1), 100, std::make_shared<LambertianMaterial>(Color(0, 0.5, 0.6))));
+	Camera cam(Point3(13, 2, 3), Point3(0,0,0), Vec3(0,1,0), 20, imgRatio);
 
 	std::cout << "P3\n" << imgW << ' ' << imgH << "\n255\n";
 	

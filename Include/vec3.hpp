@@ -28,6 +28,7 @@ class Vec3 {
 
 		double length() const;
 		double lengthSquared() const;
+		bool nearZero() const;
 
 		inline static Vec3 random() {
 			return Vec3(randomDouble(), randomDouble(), randomDouble());
@@ -105,6 +106,17 @@ inline Vec3 randomInHemisphere(const Vec3& normal){
 		return inUnitSphere;
 	else
 		return -inUnitSphere;
+}
+
+inline Vec3 reflect(const Vec3& v, const Vec3& n){
+	return v - 2 * dot(v, n) * n;
+}
+
+inline Vec3 refract(const Vec3& uv, const Vec3& n, double idxRatio){
+	double cosTheta = fmin(dot(-uv, n), 1.0);
+	Vec3 rPerp = idxRatio * (uv + cosTheta*n);
+	Vec3 rParal = -sqrt(fabs(1.0 - rPerp.lengthSquared())) * n;
+	return rPerp + rParal;
 }
 
 #endif
